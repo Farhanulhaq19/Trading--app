@@ -1,24 +1,26 @@
+// main.dart
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
-import 'Login.dart';
+import 'login.dart';
 import 'Signup_screen.dart';
+import 'dashboard_screen.dart'; // make sure this is your advanced dashboard file
+
 void main() {
   runApp(const TradyApp());
 }
 
 class TradyApp extends StatefulWidget {
-  const TradyApp({Key? key}) : super(key: key);
+  const TradyApp({super.key});
 
   @override
   State<TradyApp> createState() => _TradyAppState();
 }
 
 class _TradyAppState extends State<TradyApp> {
-  bool _isDarkMode = false;
+  bool _isDark = false;
 
   void _toggleTheme() {
     setState(() {
-      _isDarkMode = !_isDarkMode;
+      _isDark = !_isDark;
     });
   }
 
@@ -26,11 +28,15 @@ class _TradyAppState extends State<TradyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Trady App',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: DashboardScreen(onThemeToggle: _toggleTheme),
       debugShowCheckedModeBanner: false,
+      theme: _isDark ? ThemeData.dark() : ThemeData.light(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        // ✅ use the proper dashboard with theme toggle
+        '/dashboard': (context) => DashboardScreen(onThemeToggle: _toggleTheme),
+      },
     );
   }
 }
