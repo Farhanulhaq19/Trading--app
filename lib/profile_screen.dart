@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String name = 'Farhan ul Haq';
-  final String email = 'farhan@example.com';
+  final String email = 'farhan0013@gmail.com';
 
   const ProfileScreen({super.key});
 
