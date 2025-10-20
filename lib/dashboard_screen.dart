@@ -4,6 +4,8 @@ import 'dart:math';
 import 'analytics_screen.dart';
 import 'profile_screen.dart';
 import 'wallet_screen.dart';
+import 'widgets/footer_widget.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -93,8 +95,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+
         ],
       ),
+
     );
   }
 
