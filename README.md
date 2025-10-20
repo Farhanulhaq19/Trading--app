@@ -39,13 +39,17 @@ lib/
  │    ├── signup_screen.dart
  │    ├── dashboard_screen.dart
  │    └── analytics_screen.dart
+ │    └── wallet_screen.dart
+ │    └── profile_screen.dart
  ├── widgets/
  │    ├── footer.dart
  │    ├── portfolio_widget.dart
  │    ├── performance_widget.dart
  │    └── win_loss_widget.dart
- └── assets/
-      └── images
+ │    └── daily_pi_widget.dart
+ └── images/
+      └──1.jpg
+      └──2.jpg
 ```
 
 ---
