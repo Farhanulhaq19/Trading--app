@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'Signup_screen.dart';
-import 'dashboard_screen.dart'; // make sure this is your advanced dashboard file
+import 'dashboard_screen.dart';
 
 void main() {
   runApp(const TradyApp());
