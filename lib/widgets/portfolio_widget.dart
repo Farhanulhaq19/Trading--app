@@ -21,7 +21,7 @@ class PortfolioWidget extends StatelessWidget {
             const SizedBox(height: 12),
             Center(
               child: Image.asset(
-                'assets/images/portfolio_chart.png', // 👈 add any chart image here
+                'lib/images/portfolio.jpg',
                 height: 180,
                 fit: BoxFit.contain,
               ),

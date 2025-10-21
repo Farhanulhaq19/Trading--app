@@ -21,7 +21,7 @@ class PerformanceWidget extends StatelessWidget {
             const Text("Worst Day: Monday (-0.7%)"),
             const SizedBox(height: 16),
             Image.asset(
-              'assets/images/performance_graph.png',
+              'lib/images/trading.png',
               height: 160,
               fit: BoxFit.cover,
             ),
