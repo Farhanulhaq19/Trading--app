@@ -11,9 +11,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController =
-  TextEditingController(text: 'will@befarhan.com'); // prefill for convenience
+  TextEditingController(text: 'farhanulhaq0013@gmail.com'); // when start prefill for understanding
   final TextEditingController _passwordController =
-  TextEditingController(text: '123'); // prefill for convenience
+  TextEditingController(text: '12345678'); // prefill password also
   bool _obscure = true;
 
   // Hardcoded valid credentials (local-only)
