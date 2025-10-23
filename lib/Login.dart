@@ -17,8 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
 
   // Hardcoded valid credentials (local-only)
-  final String validEmail = 'will@befarhan.com';
-  final String validPassword = '123';
+  final String validEmail = 'farhanulhaq0013@gmail.com';
+  final String validPassword = '12345678';
 
   void _tryLogin() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 8),
                           const Text(
-                            'Tip: test credential -> will@befarhan.com / 123',
+                            'Tip: test credential -> your@gmail.com / 12345678',
                             style: TextStyle(fontSize: 12, color: Colors.black54),
                           )
                         ],

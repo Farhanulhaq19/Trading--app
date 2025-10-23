@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          'Paper Trading Dashboard',
+          ' Trady App Dashboard',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         Row(
