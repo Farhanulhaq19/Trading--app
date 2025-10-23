@@ -73,7 +73,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             'lib/images/2.jpg',
             fit: BoxFit.cover,
           ),
-          // ✅ Overlay fixed for both dark and light modes
+
+
+
           Container(
             color: isDark
                 ? Colors.black.withOpacity(0.85)
