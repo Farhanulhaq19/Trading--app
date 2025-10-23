@@ -14,7 +14,7 @@ class TradyApp extends StatefulWidget {
   @override
   State<TradyApp> createState() => _TradyAppState();
 }
-
+//class
 class _TradyAppState extends State<TradyApp> {
   bool _isDark = false;
 
