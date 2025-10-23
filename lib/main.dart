@@ -7,7 +7,7 @@ import 'dashboard_screen.dart';
 void main() {
   runApp(const TradyApp());
 }
-
+// update
 class TradyApp extends StatefulWidget {
   const TradyApp({super.key});
 
