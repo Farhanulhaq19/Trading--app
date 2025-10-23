@@ -321,7 +321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-
+//
 class Stock {
   final String symbol;
   final String name;
