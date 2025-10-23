@@ -6,7 +6,6 @@ import 'profile_screen.dart';
 import 'wallet_screen.dart';
 import 'widgets/footer_widget.dart';
 
-
 class DashboardScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
 

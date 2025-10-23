@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-
+import 'widgets/daily_pl_widget.dart';
+import 'widgets/portfolio_widget.dart';
 class AnalyticsScreen extends StatefulWidget {
   final List<Stock> stocks;
 

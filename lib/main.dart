@@ -34,7 +34,6 @@ class _TradyAppState extends State<TradyApp> {
       routes: {
         '/': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
-        // ✅ use the proper dashboard with theme toggle
         '/dashboard': (context) => DashboardScreen(onThemeToggle: _toggleTheme),
       },
     );
