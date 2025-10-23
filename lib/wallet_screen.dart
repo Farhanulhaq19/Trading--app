@@ -72,7 +72,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
             const SizedBox(height: 30),
 
-            // 💵 Add Money Section
+            // Money Section
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -104,8 +104,7 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
     );
   }
-
-  // 💳 Payment Button Builder
+ //                   Payment
   Widget _buildPaymentButton(String title, IconData icon, Color color, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
