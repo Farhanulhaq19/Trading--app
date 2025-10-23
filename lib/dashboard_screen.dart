@@ -66,7 +66,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // 👇 Background image
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -74,10 +73,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             'lib/images/2.jpg',
             fit: BoxFit.cover,
           ),
+          // ✅ Overlay fixed for both dark and light modes
           Container(
             color: isDark
-                ? Colors.black.withOpacity(0.6)
-                : Colors.white.withOpacity(0.6),
+                ? Colors.black.withOpacity(0.85)
+                : Colors.white.withOpacity(0.3),
           ),
           SafeArea(
             child: SingleChildScrollView(
@@ -87,17 +87,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   _buildAppBar(isDark),
                   const SizedBox(height: 20),
-                  _buildPortfolioCard(),
+                  _buildPortfolioCard(isDark),
                   const SizedBox(height: 20),
-                  _buildStocksList(),
+                  _buildStocksList(isDark),
                 ],
               ),
             ),
           ),
-
         ],
       ),
-
     );
   }
 
@@ -105,9 +103,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          ' Trady App Dashboard',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Text(
+          'Trady App Dashboard',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black, // ✅ Fix applied
+          ),
         ),
         Row(
           children: [
@@ -137,9 +139,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             IconButton(
               icon: Icon(
                 isDark ? Icons.light_mode : Icons.dark_mode,
+                color: isDark ? Colors.white : Colors.black,
               ),
               tooltip: 'Toggle Theme',
-              color: isDark ? Colors.white : Colors.black,
               onPressed: widget.onThemeToggle,
             ),
           ],
@@ -148,9 +150,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPortfolioCard() {
+  Widget _buildPortfolioCard(bool isDark) {
     return Card(
-      color: Colors.white.withOpacity(0.9),
+      color: isDark
+          ? Colors.grey[900]!.withOpacity(0.9)
+          : Colors.white.withOpacity(0.9),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 5,
       child: Padding(
@@ -158,8 +162,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Portfolio Value',
-                style: TextStyle(fontSize: 16, color: Colors.grey)),
+            Text('Portfolio Value',
+                style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white70 : Colors.grey[700])),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -167,8 +173,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: Text(
                     '\$${portfolioValue.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        fontSize: 32, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -198,7 +207,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Text(
                             '${dayChange >= 0 ? '+' : ''}\$${dayChange.abs().toStringAsFixed(2)} (${dayChangePercent.toStringAsFixed(2)}%)',
                             style: TextStyle(
-                              color: dayChange >= 0 ? Colors.green : Colors.red,
+                              color:
+                              dayChange >= 0 ? Colors.green : Colors.red,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -217,14 +227,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStocksList() {
+  Widget _buildStocksList(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Watchlist',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(
+          'Watchlist',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
         const SizedBox(height: 12),
-        ...stocks.map((stock) => _buildStockTile(stock)).toList(),
+        ...stocks.map((stock) => _buildStockTile(stock, isDark)).toList(),
         const SizedBox(height: 20),
         Center(
           child: ElevatedButton.icon(
@@ -247,8 +263,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               textStyle: const TextStyle(fontSize: 16),
               elevation: 4,
-              shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
@@ -256,28 +272,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStockTile(Stock stock) {
+  Widget _buildStockTile(Stock stock, bool isDark) {
     return Card(
-      color: Colors.white.withOpacity(0.9),
+      color: isDark
+          ? Colors.grey[850]!.withOpacity(0.9)
+          : Colors.white.withOpacity(0.9),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+          backgroundColor:
+          Theme.of(context).primaryColor.withOpacity(0.1),
           child: Text(
             stock.symbol[0],
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        title:
-        Text(stock.symbol, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(stock.name, style: const TextStyle(fontSize: 12)),
+        title: Text(
+          stock.symbol,
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black),
+        ),
+        subtitle: Text(
+          stock.name,
+          style: TextStyle(
+              fontSize: 12, color: isDark ? Colors.white70 : Colors.grey[800]),
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               '\$${stock.price.toStringAsFixed(2)}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black),
             ),
             Text(
               '${stock.change >= 0 ? '+' : ''}${stock.changePercent.toStringAsFixed(2)}%',
