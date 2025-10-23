@@ -10,7 +10,7 @@ void main() {
 
 class TradyApp extends StatefulWidget {
   const TradyApp({super.key});
-
+//
   @override
   State<TradyApp> createState() => _TradyAppState();
 }
