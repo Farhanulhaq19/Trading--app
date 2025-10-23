@@ -7,11 +7,13 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-
+//updated login screen
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController =
-  TextEditingController(text: 'farhanulhaq0013@gmail.com'); // when start prefill for understanding
+
+  TextEditingController(text: 'farhanulhaq0013@gmail.com');
+  // when start prefill for understanding
   final TextEditingController _passwordController =
   TextEditingController(text: '12345678'); // prefill password also
   bool _obscure = true;
