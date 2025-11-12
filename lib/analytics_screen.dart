@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'widgets/daily_pl_widget.dart';
 import 'widgets/portfolio_widget.dart';
+
 class AnalyticsScreen extends StatefulWidget {
   final List<Stock> stocks;
 
@@ -18,7 +19,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    // 👇 Set default tab to Win/Loss (index = 2)
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 2);
   }
 
   @override
@@ -94,20 +96,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                style:
+                const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(subtitle, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 20),
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Container(
                 height: 250,
                 padding: const EdgeInsets.all(16),
                 alignment: Alignment.center,
-                child: Icon(icon,
-                    size: 100,
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.25)),
+                child: Icon(
+                  icon,
+                  size: 100,
+                  color:
+                  Theme.of(context).colorScheme.primary.withOpacity(0.25),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -158,15 +165,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   // ---------------------- Daily P&L Insights ----------------------
 
   Widget _buildDailyPLInsights() {
-    final best = widget.stocks.reduce((a, b) => a.changePercent > b.changePercent ? a : b);
-    final worst = widget.stocks.reduce((a, b) => a.changePercent < b.changePercent ? a : b);
+    final best = widget.stocks
+        .reduce((a, b) => a.changePercent > b.changePercent ? a : b);
+    final worst = widget.stocks
+        .reduce((a, b) => a.changePercent < b.changePercent ? a : b);
     final gainers = widget.stocks.where((s) => s.changePercent > 0).length;
 
     return _buildInsightsCard('Today\'s Summary', [
-      _insightRow('Best Performer', '${best.symbol} (${best.changePercent.toStringAsFixed(2)}%)'),
-      _insightRow('Worst Performer', '${worst.symbol} (${worst.changePercent.toStringAsFixed(2)}%)'),
+      _insightRow('Best Performer',
+          '${best.symbol} (${best.changePercent.toStringAsFixed(2)}%)'),
+      _insightRow('Worst Performer',
+          '${worst.symbol} (${worst.changePercent.toStringAsFixed(2)}%)'),
       _insightRow('Gainers', '$gainers/${widget.stocks.length}'),
-      _insightRow('Market Mood', gainers > widget.stocks.length / 2 ? 'Bullish 🟢' : 'Bearish 🔴'),
+      _insightRow('Market Mood',
+          gainers > widget.stocks.length / 2 ? 'Bullish 🟢' : 'Bearish 🔴'),
     ]);
   }
 
@@ -182,7 +194,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             ...children,
           ],
@@ -198,9 +211,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 15)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Text(value,
+              style:
+              const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
         ],
       ),
     );
   }
 }
+

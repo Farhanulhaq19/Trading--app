@@ -110,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black, // ✅ Fix applied
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         Row(
