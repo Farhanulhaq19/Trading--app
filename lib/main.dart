@@ -7,14 +7,14 @@ import 'dashboard_screen.dart';
 void main() {
   runApp(const TradyApp());
 }
-
+// update
 class TradyApp extends StatefulWidget {
   const TradyApp({super.key});
 
   @override
   State<TradyApp> createState() => _TradyAppState();
 }
-
+//class
 class _TradyAppState extends State<TradyApp> {
   bool _isDark = false;
 
