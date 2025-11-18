@@ -1,39 +1,62 @@
-// login.dart
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-//updated login screen
+
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController =
-
-  TextEditingController(text: 'farhanulhaq0013@gmail.com');
-  // when start prefill for understanding
-  final TextEditingController _passwordController =
-  TextEditingController(text: '12345678'); // prefill password also
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _obscure = true;
 
-  // Hardcoded valid credentials (local-only)
-  final String validEmail = 'farhanulhaq0013@gmail.com';
-  final String validPassword = '12345678';
+  // POPUP
+  Future<void> _showPopup(String message) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text("Message"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          )
+        ],
+      ),
+    );
+  }
 
-  void _tryLogin() {
+  void _tryLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
       final email = _emailController.text.trim();
       final pass = _passwordController.text;
 
-      if (email == validEmail && pass == validPassword) {
-        // success
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: pass,
         );
+
+        _showPopup("Login Successful!");
+
+        Future.delayed(const Duration(milliseconds: 600), () {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        });
+
+      } on FirebaseAuthException catch (e) {
+        String msg = "Login failed";
+
+        if (e.code == 'user-not-found') msg = 'No user found for that email';
+        if (e.code == 'wrong-password') msg = 'Incorrect password';
+        if (e.code == 'invalid-email') msg = 'Invalid email format';
+
+        _showPopup(msg);
       }
     }
   }
@@ -45,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background image
           SizedBox(
             width: double.infinity,
             height: double.infinity,
@@ -54,19 +76,16 @@ class _LoginScreenState extends State<LoginScreen> {
               fit: BoxFit.cover,
             ),
           ),
+          Container(color: Colors.black.withOpacity(0.45)),
 
-          // Dim overlay for readability
-          Container(
-            color: Colors.black.withOpacity(0.45),
-          ),
-
-          // Form card
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Card(
                 elevation: 12,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 color: Colors.white.withOpacity(0.95),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -77,15 +96,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'Welcome Back',
-                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                          ),
+                          const Text('Welcome Back',
+                              style: TextStyle(
+                                  fontSize: 26, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
-                          const Text('Login to continue', style: TextStyle(fontSize: 14)),
+                          const Text('Login to continue',
+                              style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 20),
 
-                          // Email
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -94,14 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.email),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Please enter email';
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) return 'Enter valid email';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Please enter email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                  .hasMatch(v.trim())) {
+                                return 'Enter valid email';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 12),
 
-                          // Password
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscure,
@@ -109,13 +131,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               labelText: 'Password',
                               prefixIcon: const Icon(Icons.lock),
                               suffixIcon: IconButton(
-                                icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
-                                onPressed: () => setState(() => _obscure = !_obscure),
+                                icon: Icon(_obscure
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Please enter password';
-                              if (v.length < 3) return 'Password too short';
+                              if (v == null || v.isEmpty) {
+                                return 'Please enter password';
+                              }
+                              if (v.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
                               return null;
                             },
                           ),
@@ -126,10 +155,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: _tryLogin,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                              child: const Text('Login', style: TextStyle(fontSize: 16)),
+                              child: const Text('Login',
+                                  style: TextStyle(fontSize: 16)),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -146,12 +179,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Tip: test credential -> your@gmail.com / 12345678',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
-                          )
                         ],
                       ),
                     ),
@@ -159,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
