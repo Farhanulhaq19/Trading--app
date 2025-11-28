@@ -131,19 +131,31 @@ class _WalletScreenState extends State<WalletScreen> {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: iconColor.withOpacity(0.2),
-          child: Icon(icon, color: iconColor),
+          child: Icon(
+            icon,
+            color: iconColor,
+          ),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
         subtitle: const Text('Completed'),
         trailing: Text(
           amount,
-          style: TextStyle(fontWeight: FontWeight.bold, color: iconColor),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: iconColor,
+          ),
         ),
       ),
     );
   }
+
 }
