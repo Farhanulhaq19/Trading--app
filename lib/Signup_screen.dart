@@ -1,6 +1,6 @@
-// signup.dart
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -10,29 +10,63 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscure = true;
 
-  // NOTE: This example does not store accounts persistently.
-  // It just demonstrates a signup UI and returns to login screen.
-  void _createAccount() {
+  Future<void> _showPopup(String message) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text("Message"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _createAccount() async {
     if (_formKey.currentState?.validate() ?? false) {
       final name = _nameCtrl.text.trim();
       final email = _emailCtrl.text.trim();
       final pass = _passCtrl.text;
 
-      // In a real app you'd call backend / store securely.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account created for $name (local only)')),
-      );
+      try {
+        UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: pass,
+        );
 
-      // Optionally prefill the login screen by returning email
-      Future.delayed(const Duration(milliseconds: 700), () {
-        Navigator.pop(context); // go back to login
-        // If you want to pass the created email to login screen, use Navigator.pushReplacement with args.
-      });
+        await userCredential.user?.updateDisplayName(name);
+
+        _showPopup("Account created successfully!");
+
+        _nameCtrl.clear();
+        _emailCtrl.clear();
+        _passCtrl.clear();
+
+        Future.delayed(const Duration(milliseconds: 600), () {
+          Navigator.pop(context);
+        });
+
+      } on FirebaseAuthException catch (e) {
+        String msg = "Signup failed";
+
+        if (e.code == 'email-already-in-use') msg = "Email already exists";
+        if (e.code == 'invalid-email') msg = "Invalid email format";
+        if (e.code == 'weak-password') msg = "Password must be at least 6 characters";
+
+        _showPopup(msg);
+      }
     }
   }
 
@@ -41,7 +75,6 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background
           SizedBox.expand(
             child: Image.asset(
               'lib/images/1.jpg',
@@ -55,20 +88,28 @@ class _SignupScreenState extends State<SignupScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Card(
                 elevation: 10,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 color: Colors.white.withOpacity(0.95),
                 child: Padding(
                   padding: const EdgeInsets.all(18.0),
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width > 500 ? 460 : double.infinity,
+                    width: MediaQuery.of(context).size.width > 500
+                        ? 460
+                        : double.infinity,
                     child: Form(
                       key: _formKey,
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Create Account',
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 8),
-                          const Text('Fill details to sign up', style: TextStyle(fontSize: 14)),
+                          const Text('Fill details to sign up',
+                              style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 18),
 
                           TextFormField(
@@ -77,7 +118,10 @@ class _SignupScreenState extends State<SignupScreen> {
                               labelText: 'Full name',
                               prefixIcon: Icon(Icons.person),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                            validator: (v) =>
+                            (v == null || v.trim().isEmpty)
+                                ? 'Enter your name'
+                                : null,
                           ),
                           const SizedBox(height: 12),
 
@@ -89,8 +133,13 @@ class _SignupScreenState extends State<SignupScreen> {
                               prefixIcon: Icon(Icons.email),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Enter email';
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) return 'Enter valid email';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                  .hasMatch(v.trim())) {
+                                return 'Enter valid email';
+                              }
                               return null;
                             },
                           ),
@@ -103,13 +152,20 @@ class _SignupScreenState extends State<SignupScreen> {
                               labelText: 'Password',
                               prefixIcon: const Icon(Icons.lock),
                               suffixIcon: IconButton(
-                                icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
-                                onPressed: () => setState(() => _obscure = !_obscure),
+                                icon: Icon(_obscure
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Enter password';
-                              if (v.length < 3) return 'Password must be 3+ chars';
+                              if (v == null || v.isEmpty) {
+                                return 'Enter password';
+                              }
+                              if (v.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
                               return null;
                             },
                           ),
@@ -120,14 +176,17 @@ class _SignupScreenState extends State<SignupScreen> {
                             child: ElevatedButton(
                               onPressed: _createAccount,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                               ),
-                              child: const Text('Sign up', style: TextStyle(fontSize: 16)),
+                              child: const Text('Sign up',
+                                  style: TextStyle(fontSize: 16)),
                             ),
                           ),
-
                           const SizedBox(height: 12),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
