@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -40,13 +42,26 @@ class _SignupScreenState extends State<SignupScreen> {
       final pass = _passCtrl.text;
 
       try {
+        // Create user in Firebase Auth
         UserCredential userCredential =
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: email,
           password: pass,
         );
 
+        // Update display name in FirebaseAuth
         await userCredential.user?.updateDisplayName(name);
+
+        // Save additional data in Firestore
+        await FirebaseFirestore.instance
+            .collection("users")
+            .doc(userCredential.user!.uid)
+            .set({
+          "name": name,
+          "email": email,
+          "uid": userCredential.user!.uid,
+          "createdAt": DateTime.now(),
+        });
 
         _showPopup("Account created successfully!");
 
@@ -69,6 +84,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

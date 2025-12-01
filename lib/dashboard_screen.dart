@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math';
+import 'dart:math'; // For Random in simulation
+import 'package:flutter/material.dart';
+import 'models/stock.dart';
+import 'services/stock_service.dart';
 import 'analytics_screen.dart';
 import 'profile_screen.dart';
 import 'wallet_screen.dart';
-import 'widgets/footer_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -18,24 +19,27 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _timer;
-  final Random _random = Random();
-
   double portfolioValue = 100000;
   double dayChange = 0;
   double dayChangePercent = 0;
 
-  List<Stock> stocks = [
-    Stock('AAPL', 'Apple Inc.', 150.0, 0, 0),
-    Stock('GOOGL', 'Alphabet Inc.', 2800.0, 0, 0),
-    Stock('TSLA', 'Tesla Inc.', 750.0, 0, 0),
-    Stock('MSFT', 'Microsoft Corp.', 350.0, 0, 0),
-    Stock('AMZN', 'Amazon.com Inc.', 3300.0, 0, 0),
-  ];
+  // Use ValueNotifier for shared state (updates Analytics too)
+  late ValueNotifier<List<Stock>> stocksNotifier;
 
   @override
   void initState() {
     super.initState();
-    _startPriceSimulation();
+
+    // Initialize stocks with real symbols
+    stocksNotifier = ValueNotifier([
+      Stock(symbol: 'AAPL', name: 'Apple Inc.', price: 150.0, change: 0, changePercent: 0),
+      Stock(symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2800.0, change: 0, changePercent: 0),
+      Stock(symbol: 'TSLA', name: 'Tesla Inc.', price: 750.0, change: 0, changePercent: 0),
+      Stock(symbol: 'MSFT', name: 'Microsoft Corp.', price: 350.0, change: 0, changePercent: 0),
+      Stock(symbol: 'AMZN', name: 'Amazon.com Inc.', price: 3300.0, change: 0, changePercent: 0),
+    ]);
+
+    _startRealTimeUpdates();
   }
 
   @override
@@ -44,21 +48,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  void _startPriceSimulation() {
-    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      setState(() {
-        for (var stock in stocks) {
-          double changePercent = (_random.nextDouble() - 0.5) * 2;
-          stock.changePercent = changePercent;
-          stock.change = stock.price * changePercent / 100;
-          stock.price += stock.change;
-        }
-
-        dayChange = stocks.fold(0, (sum, stock) => sum + stock.change * 100);
-        dayChangePercent = dayChange / portfolioValue * 100;
-        portfolioValue += dayChange;
-      });
+  void _startRealTimeUpdates() {
+    // Update every 60 seconds to respect API limits (5 calls/min free tier)
+    _timer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      _updatePrices();
     });
+
+    _updatePrices(); // Initial call
+  }
+
+  Future<void> _updatePrices() async {
+    List<Stock> updatedStocks = List.from(stocksNotifier.value);
+    bool apiSuccess = false;
+
+    for (var stock in updatedStocks) {
+      try {
+        final data = await StockService.fetchStockQuote(stock.symbol);
+
+        if (data != null && data.isNotEmpty) {
+          // Real API update
+          stock.price = double.tryParse(data["05. price"] ?? "0") ?? stock.price;
+          stock.change = double.tryParse(data["09. change"] ?? "0") ?? 0;
+          stock.changePercent = double.tryParse(
+            (data["10. change percent"] ?? "0").replaceAll('%', ''),
+          ) ?? 0;
+          apiSuccess = true;
+        } else {
+          // Fallback: Simulate small random change (±0.5% to ±2%)
+          _simulateChange(stock);
+        }
+      } catch (e) {
+        // Network/error fallback: Simulate
+        _simulateChange(stock);
+        print('API error for ${stock.symbol}: $e'); // Debug log
+      }
+
+      // Small delay between calls to respect rate limits (total ~60s for 5 stocks)
+      await Future.delayed(const Duration(seconds: 12));
+    }
+
+    // Recalculate portfolio (assuming 1 share per stock for demo; adjust as needed)
+    dayChange = updatedStocks.fold(0.0, (sum, s) => sum + s.change);
+    dayChangePercent = (dayChange / portfolioValue) * 100;
+    portfolioValue += dayChange;
+
+    // Trigger UI update
+    stocksNotifier.value = updatedStocks;
+
+    // Optional: Show snackbar on success
+    if (apiSuccess && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Stocks updated from live market! 📈'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Fallback simulation: Small realistic changes
+  void _simulateChange(Stock stock) {
+    final random = Random();
+    final percentChange = (random.nextDouble() - 0.5) * 4; // -2% to +2%
+    stock.changePercent = percentChange;
+    stock.change = stock.price * (percentChange / 100);
+    stock.price += stock.change;
   }
 
   @override
@@ -69,13 +123,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'lib/images/2.jpg',
-            fit: BoxFit.cover,
-          ),
-
-
-
+          // Your background image
+          Image.asset('lib/images/2.jpg', fit: BoxFit.cover),
           Container(
             color: isDark
                 ? Colors.black.withOpacity(0.85)
@@ -133,8 +182,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileScreen()),
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
                 );
               },
             ),
@@ -183,11 +231,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 8),
                 Flexible(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: dayChange >= 0
                           ? Colors.green.withOpacity(0.2)
@@ -198,9 +244,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          dayChange >= 0
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward,
+                          dayChange >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
                           color: dayChange >= 0 ? Colors.green : Colors.red,
                           size: 16,
                         ),
@@ -209,8 +253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Text(
                             '${dayChange >= 0 ? '+' : ''}\$${dayChange.abs().toStringAsFixed(2)} (${dayChangePercent.toStringAsFixed(2)}%)',
                             style: TextStyle(
-                              color:
-                              dayChange >= 0 ? Colors.green : Colors.red,
+                              color: dayChange >= 0 ? Colors.green : Colors.red,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -242,7 +285,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        ...stocks.map((stock) => _buildStockTile(stock, isDark)).toList(),
+        // Auto-updates with ValueNotifier
+        ValueListenableBuilder<List<Stock>>(
+          valueListenable: stocksNotifier,
+          builder: (context, stocks, child) {
+            return Column(
+              children: stocks.map((stock) => _buildStockTile(stock, isDark)).toList(),
+            );
+          },
+        ),
         const SizedBox(height: 20),
         Center(
           child: ElevatedButton.icon(
@@ -250,7 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AnalyticsScreen(stocks: stocks),
+                  builder: (context) => AnalyticsScreen(stocksNotifier: stocksNotifier),
                 ),
               );
             },
@@ -261,12 +312,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amberAccent,
-              padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               textStyle: const TextStyle(fontSize: 16),
               elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
@@ -282,8 +331,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-          Theme.of(context).primaryColor.withOpacity(0.1),
+          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
           child: Text(
             stock.symbol[0],
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -322,14 +370,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-}
-//
-class Stock {
-  final String symbol;
-  final String name;
-  double price;
-  double change;
-  double changePercent;
-
-  Stock(this.symbol, this.name, this.price, this.change, this.changePercent);
 }
