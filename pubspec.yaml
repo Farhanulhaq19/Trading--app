@@ -13,7 +13,7 @@ dependencies:
 
   # Add HTTP package here (NOT inside flutter)
   http: ^1.1.0
-
+  fl_chart: ^0.68.0
   cupertino_icons: ^1.0.8
 
   firebase_core: ^3.6.0
