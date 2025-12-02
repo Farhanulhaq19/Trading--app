@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'models/stock.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   final ValueNotifier<List<Stock>> stocksNotifier;
 
-  const AnalyticsScreen({Key? key, required this.stocksNotifier}) : super(key: key);
+  const AnalyticsScreen({Key? key, required this.stocksNotifier})
+      : super(key: key);
 
   @override
-  _AnalyticsScreenState createState() => _AnalyticsScreenState();
+  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // Fake historical data (replace with real history later)
+  final List<double> portfolioHistory = [
+    98500, 99200, 101200, 100800, 103500, 105200, 107800, 109500, 112000, 115000,
+  ];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 2);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -32,17 +38,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0D1117) : Colors.grey[100],
+      backgroundColor: isDark ? const Color(0xFF0D1117) : Colors.grey[50],
       appBar: AppBar(
         title: const Text('Analytics Dashboard'),
-        elevation: 2,
+        centerTitle: true,
+        elevation: 0,
         backgroundColor: isDark ? const Color(0xFF161B22) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black,
         bottom: TabBar(
           controller: _tabController,
-          isScrollable: true,
           indicatorColor: Colors.indigo,
-          labelColor: isDark ? Colors.white : Colors.indigo,
+          labelColor: Colors.indigo,
+          unselectedLabelColor: isDark ? Colors.grey : Colors.black54,
           tabs: const [
             Tab(text: 'Portfolio', icon: Icon(Icons.pie_chart)),
             Tab(text: 'Performance', icon: Icon(Icons.trending_up)),
@@ -54,118 +61,213 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       body: ValueListenableBuilder<List<Stock>>(
         valueListenable: widget.stocksNotifier,
         builder: (context, stocks, child) {
+          final totalValue = _calculatePortfolioValue(stocks);
           return TabBarView(
             controller: _tabController,
             children: [
-              _buildChartPage('Portfolio Allocation', 'Your investments by sector and asset type', Icons.pie_chart, _buildPortfolioInsights()),
-              _buildChartPage('Performance Overview', 'Weekly and Monthly portfolio performance', Icons.show_chart, _buildPerformanceInsights()),
-              _buildChartPage('Win/Loss Analysis', 'Your trading accuracy and statistics', Icons.analytics, _buildWinLossInsights()),
-              _buildChartPage('Daily Gains & Losses', 'Track top gainers and losers for today', Icons.bar_chart, _buildDailyPLInsights(stocks)),
+              _buildPortfolioTab(totalValue, isDark),
+              _buildPerformanceTab(isDark),
+              _buildWinLossTab(isDark),
+              _buildDailyPLTab(stocks, isDark),
             ],
           );
         },
       ),
+      // Footer completely REMOVED
     );
   }
 
-  Widget _buildChartPage(String title, String subtitle, IconData icon, Widget insights) {
+  double _calculatePortfolioValue(List<Stock> stocks) {
+    const sharesPerStock = 80.0;
+    const pkrBalance = 12000.0;
+    const usdBalance = 43.50;
+    const pkrToUsd = 278.0;
+
+    final stockValue = stocks.fold(0.0, (sum, s) => sum + s.price * sharesPerStock);
+    final cashValue = usdBalance + (pkrBalance / pkrToUsd);
+    return stockValue + cashValue;
+  }
+
+  // Tab 1: Portfolio Growth Line Chart
+  Widget _buildPortfolioTab(double currentValue, bool isDark) {
+    final spots = portfolioHistory
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value))
+        .toList();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: Colors.grey)),
+          Text("Portfolio Growth", style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 20),
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Container(
-              height: 250,
-              padding: const EdgeInsets.all(16),
-              alignment: Alignment.center,
-              child: Icon(icon, size: 100, color: Theme.of(context).colorScheme.primary.withOpacity(0.25)),
+          SizedBox(
+            height: 300,
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: true),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Today'];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(days[value.toInt()], style: const TextStyle(fontSize: 10)),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: true),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: Colors.indigo,
+                    barWidth: 4,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(show: true, color: Colors.indigo.withOpacity(0.2)),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 20),
-          insights,
+          const SizedBox(height: 30),
+          _insightCard("Current Value", "\$${currentValue.toStringAsFixed(0)}", Icons.trending_up, Colors.green),
+          _insightCard("30-Day Gain", "+15.2%", Icons.arrow_upward, Colors.green),
+          _insightCard("Risk Level", "Moderate", Icons.speed, Colors.orange),
         ],
       ),
     );
   }
 
-  Widget _buildPortfolioInsights() {
-    return _buildInsightsCard('Portfolio Breakdown', [
-      _insightRow('Total Value', '\$25,400'),
-      _insightRow('Largest Sector', 'Technology (45%)'),
-      _insightRow('Diversification', 'Good (6 sectors)'),
-      _insightRow('Volatility', 'Moderate Risk'),
-      _insightRow('Suggestion', 'Add Energy & Healthcare stocks'),
-    ]);
-  }
-
-  Widget _buildPerformanceInsights() {
-    return _buildInsightsCard('Performance Summary', [
-      _insightRow('7-Day Return', '+2.5%'),
-      _insightRow('30-Day Return', '+8.1%'),
-      _insightRow('Best Day', 'Friday (+1.7%)'),
-      _insightRow('Worst Day', 'Monday (-0.9%)'),
-      _insightRow('Overall Trend', 'Upward Momentum 📈'),
-    ]);
-  }
-
-  Widget _buildWinLossInsights() {
-    return _buildInsightsCard('Trading Statistics', [
-      _insightRow('Total Trades', '54'),
-      _insightRow('Winning Trades', '35 (64%)'),
-      _insightRow('Losing Trades', '19 (36%)'),
-      _insightRow('Average Win', '+\$245'),
-      _insightRow('Average Loss', '-\$180'),
-      _insightRow('Profit Factor', '1.36'),
-    ]);
-  }
-
-  Widget _buildDailyPLInsights(List<Stock> stocks) {
-    final best = stocks.reduce((a, b) => a.changePercent > b.changePercent ? a : b);
-    final worst = stocks.reduce((a, b) => a.changePercent < b.changePercent ? a : b);
-    final gainers = stocks.where((s) => s.changePercent > 0).length;
-
-    return _buildInsightsCard('Today\'s Summary', [
-      _insightRow('Best Performer', '${best.symbol} (${best.changePercent.toStringAsFixed(2)}%)'),
-      _insightRow('Worst Performer', '${worst.symbol} (${worst.changePercent.toStringAsFixed(2)}%)'),
-      _insightRow('Gainers', '$gainers/${stocks.length}'),
-      _insightRow('Market Mood', gainers > stocks.length / 2 ? 'Bullish 🟢' : 'Bearish 🔴'),
-    ]);
-  }
-
-  Widget _buildInsightsCard(String title, List<Widget> children) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _insightRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  // Tab 2: Performance
+  Widget _buildPerformanceTab(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 15)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Text("30-Day Performance", style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 300,
+            child: LineChart(
+              LineChartData(
+                lineTouchData: const LineTouchData(enabled: false),
+                gridData: const FlGridData(show: true),
+                titlesData: const FlTitlesData(show: false),
+                borderData: FlBorderData(show: true),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: const [
+                      FlSpot(0, 100000), FlSpot(5, 102000), FlSpot(10, 108000),
+                      FlSpot(15, 105000), FlSpot(20, 112000), FlSpot(25, 115000), FlSpot(30, 115000),
+                    ],
+                    isCurved: true,
+                    color: Colors.green,
+                    barWidth: 4,
+                    belowBarData: BarAreaData(show: true, color: Colors.green.withOpacity(0.3)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          _insightCard("Best Week", "+8.4%", Icons.emoji_events, Colors.amber),
+          _insightCard("Average Daily", "+0.42%", Icons.show_chart, Colors.blue),
         ],
+      ),
+    );
+  }
+
+  // Tab 3: Win/Loss Pie Chart
+  Widget _buildWinLossTab(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text("Trading Win Rate", style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 30),
+          SizedBox(
+            height: 300,
+            child: PieChart(
+              PieChartData(
+                sections: [
+                  PieChartSectionData(value: 64, color: Colors.green, title: '64% Win', radius: 80, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  PieChartSectionData(value: 36, color: Colors.red, title: '36% Loss', radius: 70, titleStyle: const TextStyle(color: Colors.white)),
+                ],
+                centerSpaceRadius: 40,
+                sectionsSpace: 4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          _insightCard("Total Trades", "54", Icons.swap_horiz, Colors.indigo),
+          _insightCard("Profit Factor", "1.36", Icons.trending_up, Colors.green),
+        ],
+      ),
+    );
+  }
+
+  // Tab 4: Daily P&L Bar Chart
+  Widget _buildDailyPLTab(List<Stock> stocks, bool isDark) {
+    final sorted = List.from(stocks)..sort((a, b) => b.changePercent.compareTo(a.changePercent));
+    final bars = sorted.asMap().entries.map((e) => BarChartGroupData(
+      x: e.key,
+      barRods: [BarChartRodData(toY: e.value.changePercent, color: e.value.changePercent >= 0 ? Colors.green : Colors.red, width: 20)],
+    )).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Today's Gainers & Losers", style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 300,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                barGroups: bars,
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) => value.toInt() < sorted.length
+                        ? Padding(padding: const EdgeInsets.only(top: 8), child: Text(sorted[value.toInt()].symbol, style: const TextStyle(fontSize: 12)))
+                        : const Text(''),
+                  )),
+                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: (value, meta) => Text('${value.toInt()}%'))),
+                ),
+                gridData: const FlGridData(show: true),
+                borderData: FlBorderData(show: true),
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          ...sorted.take(3).map((s) => _insightCard(
+            "${s.changePercent > 0 ? "Top Gainer" : "Top Loser"}: ${s.symbol}",
+            "${s.changePercent > 0 ? '+' : ''}${s.changePercent.toStringAsFixed(2)}%",
+            s.changePercent > 0 ? Icons.trending_up : Icons.trending_down,
+            s.changePercent > 0 ? Colors.green : Colors.red,
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _insightCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        leading: CircleAvatar(backgroundColor: color.withOpacity(0.2), child: Icon(icon, color: color)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        trailing: Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 16)),
       ),
     );
   }
