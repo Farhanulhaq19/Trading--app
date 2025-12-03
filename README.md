@@ -1,4 +1,6 @@
 📱 Trading App – Final Module (Module #02 or Final)
+
+
 📌 A Flutter-Based Paper Trading & Investment Analytics Application
 
 This is the Final Module of the Trading App project built for the Mobile Application Development course. It completes the full prototype of a modern trading dashboard with user authentication, real-time stock monitoring, analytics visualizations, and cloud integration.
