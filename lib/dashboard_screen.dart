@@ -1,4 +1,4 @@
-// lib/widgets/dashboard_screen.dart
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -116,58 +116,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
         fit: StackFit.expand,
         children: [
           Image.asset('lib/images/2.jpg', fit: BoxFit.cover),
-          Container(color: isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.3)),
+          Container(
+            color: isDark
+                ? Colors.black.withOpacity(0.85)
+                : Colors.white.withOpacity(0.3),
+          ),
+
           SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildAppBar(isDark),
-                        const SizedBox(height: 20),
-                        _buildPortfolioCard(isDark),
-                        const SizedBox(height: 24),
-                        _buildStocksList(isDark),
-                        const SizedBox(height: 24),
-                        _buildPortfolioTrendChart(isDark), // NEW LINE CHART
-                        const SizedBox(height: 24),
-                        _buildPortfolioPieChart(isDark),  // NEW PIE CHART
-                        const SizedBox(height: 30),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => AnalyticsScreen(stocksNotifier: stocksNotifier)),
-                            ),
-                            icon: const Icon(Icons.analytics, color: Colors.black),
-                            label: const Text('View Analytics', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amberAccent,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  // ─────── TOP SECTION ───────
+                  _buildAppBar(isDark),
+                  const SizedBox(height: 20),
+
+                  _buildPortfolioCard(isDark),
+                  const SizedBox(height: 24),
+
+                  _buildStocksList(isDark),
+                  const SizedBox(height: 24),
+
+                  _buildPortfolioTrendChart(isDark),
+                  const SizedBox(height: 24),
+
+                  _buildPortfolioPieChart(isDark),
+                  const SizedBox(height: 30),
+
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AnalyticsScreen(stocksNotifier: stocksNotifier),
                         ),
-                        const SizedBox(height: 40),
-                      ],
+                      ),
+                      icon: const Icon(Icons.analytics, color: Colors.black),
+                      label: const Text(
+                        'View Analytics',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amberAccent,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                _buildFooter(isDark), // NEW RESPONSIVE FOOTER
-              ],
+
+                  const SizedBox(height: 50),
+
+                  // ─────────────────────────────
+                  //         FOOTER (AT END)
+                  // ─────────────────────────────
+                  _buildFooter(isDark),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ],
-      ),
+      )
     );
   }
 
-  // ────────────────────── UI WIDGETS ──────────────────────
-
-  Widget _buildAppBar(bool isDark) { /* same as before – omitted for brevity */
+  // ─────── APP BAR ───────
+  Widget _buildAppBar(bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -183,7 +205,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPortfolioCard(bool isDark) { /* same as before – shortened */
+  // ─────── PORTFOLIO CARD ───────
+  Widget _buildPortfolioCard(bool isDark) {
     return Card(
       color: isDark ? Colors.grey[900]!.withOpacity(0.9) : Colors.white.withOpacity(0.9),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -211,6 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ─────── STOCKS LIST ───────
   Widget _buildStocksList(bool isDark) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Watchlist', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
@@ -241,124 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ─────── PORTFOLIO TREND CHART (exactly like your screenshot) ───────
-  Widget _buildPortfolioTrendChart(bool isDark) {
-    final spots = <FlSpot>[];
-    final random = Random();
-    final base = portfolioValue;
-    for (int i = 0; i < 13; i++) {
-      final variation = (random.nextDouble() - 0.5) * 0.4;
-      final value = base * (0.6 + variation + 0.04 * i);
-      spots.add(FlSpot(i.toDouble(), value));
-    }
-
-    return Card(
-      color: isDark ? Colors.grey[900]!.withOpacity(0.9) : Colors.white.withOpacity(0.95),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Portfolio Performance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.cyan.shade100, borderRadius: BorderRadius.circular(20)),
-                  child: Text('€225k/MW/Year', style: TextStyle(color: Colors.cyan.shade900, fontWeight: FontWeight.bold, fontSize: 13)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 260,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 50000),
-                  titlesData: FlTitlesData(
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    LineChartBarData(spots: spots, isCurved: true, color: Colors.pink.shade600, barWidth: 3, dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(show: true, color: Colors.pink.shade100.withOpacity(0.4)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _legendItem(Colors.pink.shade200, 'Performance distribution across all assets'),
-              const SizedBox(width: 20),
-              _legendItem(Colors.grey.shade400, 'Average portfolio performance'),
-              const SizedBox(width: 20),
-              _legendItem(Colors.pink.shade600, 'Max portfolio performance'),
-            ]),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _legendItem(Color color, String text) {
-    return Row(children: [
-      Container(width: 16, height: 3, color: color),
-      const SizedBox(width: 6),
-      Text(text, style: const TextStyle(fontSize: 11)),
-    ]);
-  }
-
-  // ─────── PORTFOLIO PIE CHART ───────
-  Widget _buildPortfolioPieChart(bool isDark) {
-    final stocks = stocksNotifier.value;
-    final cashUSD = balanceUSD + balancePKR / pkrToUsdRate;
-    final sections = <PieChartSectionData>[];
-    final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.red, Colors.cyan];
-
-    for (int i = 0; i < stocks.length; i++) {
-      final value = stocks[i].price * sharesPerStock;
-      sections.add(PieChartSectionData(value: value, color: colors[i], title: '${(value / portfolioValue * 100).toStringAsFixed(1)}%', radius: 60, titleStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)));
-    }
-    sections.add(PieChartSectionData(value: cashUSD, color: Colors.grey, title: '${(cashUSD / portfolioValue * 100).toStringAsFixed(1)}%', radius: 60, titleStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)));
-
-    return Card(
-      color: isDark ? Colors.grey[900]!.withOpacity(0.9) : Colors.white.withOpacity(0.95),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text('Portfolio Allocation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
-            const SizedBox(height: 20),
-            SizedBox(height: 200, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 40))),
-            const SizedBox(height: 16),
-            Wrap(spacing: 16, runSpacing: 8, children: [
-              ...stocks.asMap().entries.map((e) => _pieLegend(colors[e.key], e.value.symbol)),
-              _pieLegend(Colors.grey, 'Cash'),
-            ]),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _pieLegend(Color color, String label) {
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-      const SizedBox(width: 6),
-      Text(label, style: const TextStyle(fontSize: 12)),
-    ]);
-  }
-
-  // ─────── RESPONSIVE FOOTER (White in Light, Dark in Dark) ───────
+  // ─────── FOOTER ───────
   Widget _buildFooter(bool isDark) {
     final textColor = isDark ? Colors.white70 : Colors.grey.shade800;
     final titleColor = isDark ? Colors.white : Colors.black;
@@ -394,13 +301,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 16),
                   Icon(Icons.code, color: textColor),
                   const SizedBox(width: 16),
-                  const Text('Pakistan flag', style: TextStyle(fontSize: 24)),
+                  const Text('🇵🇰', style: TextStyle(fontSize: 24)),
                 ]),
               ]),
             ],
           ),
           const Divider(height: 40),
-          Text('© 2025 Trady App • Made with Pakistan in Pakistan', style: TextStyle(color: textColor, fontSize: 12)),
+          Text('© 2025 Trady App • Made with ❤️ in Pakistan', style: TextStyle(color: textColor, fontSize: 12)),
         ],
       ),
     );
@@ -412,5 +319,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const SizedBox(height: 16),
       ...items.map((item) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(item, style: TextStyle(color: textColor)))),
     ]);
+  }
+
+  // ─────── PIE & LINE CHARTS ───────
+  Widget _buildPortfolioTrendChart(bool isDark) {
+    final spots = <FlSpot>[];
+    final random = Random();
+    final base = portfolioValue;
+    for (int i = 0; i < 13; i++) {
+      final variation = (random.nextDouble() - 0.5) * 0.4;
+      final value = base * (0.6 + variation + 0.04 * i);
+      spots.add(FlSpot(i.toDouble(), value));
+    }
+
+    return Card(
+      color: isDark ? Colors.grey[900]!.withOpacity(0.9) : Colors.white.withOpacity(0.95),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Portfolio Performance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 260,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 50000),
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: Colors.pink.shade600,
+                      barWidth: 3,
+                      dotData: FlDotData(show: false),
+                      belowBarData: BarAreaData(show: true, color: Colors.pink.shade100.withOpacity(0.4)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPortfolioPieChart(bool isDark) {
+    final stocks = stocksNotifier.value;
+    final cashUSD = balanceUSD + balancePKR / pkrToUsdRate;
+    final sections = <PieChartSectionData>[];
+    final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.red, Colors.cyan];
+
+    for (int i = 0; i < stocks.length; i++) {
+      final value = stocks[i].price * sharesPerStock;
+      sections.add(PieChartSectionData(value: value, color: colors[i], title: '${(value / portfolioValue * 100).toStringAsFixed(1)}%', radius: 60, titleStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)));
+    }
+    sections.add(PieChartSectionData(value: cashUSD, color: Colors.grey, title: '${(cashUSD / portfolioValue * 100).toStringAsFixed(1)}%', radius: 60, titleStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)));
+
+    return Card(
+      color: isDark ? Colors.grey[900]!.withOpacity(0.9) : Colors.white.withOpacity(0.95),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text('Portfolio Allocation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+            const SizedBox(height: 20),
+            SizedBox(height: 200, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 40))),
+          ],
+        ),
+      ),
+    );
   }
 }
