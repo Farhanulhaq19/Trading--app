@@ -156,7 +156,7 @@ services/stock_service.dart
 ---
 
 ### 📊 Dashboard #02 (Second Photo)
-![Dashboard #02](lib/ScreenShots/Dashboard#02.png)
+![Dashboard#02](lib/ScreenShots/Dashboard#02.png)
 
 ---
 
